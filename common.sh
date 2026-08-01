@@ -15,6 +15,7 @@ N="\e[0m"
 SCRIPT_DIR=$PWD 
 START_TIME=$(date +%s)
 $MONGODB_HOST=mongodb.bunnyone.online 
+MYSQL_HOST=mysql.bunnyone.online
 
 mkdir -p $LOGS_FOLDER
 
@@ -49,8 +50,29 @@ VALIDATE(){
     npm install &>>$LOGS_FILE
     VALIDATE $? "Installing dependencies"
 
-
  }
+ 
+ java_setup(){
+    dnf install maven -y &>>$LOGS_FILE
+    VALIDATE $? "Install maven"
+
+    cd /app 
+    mvn clean package &>>$LOGS_FILE
+    VALIDATE $? "Installing and building $app_name"
+
+    mv target/$app_name-1.0.jar $app_name.jar 
+    VALIDATE $? "Installing and Renaming $app_name"
+}
+
+python_setup(){
+    dnf install python3 gcc python3-devel -y
+    VALIDATE $? "downloading python"
+
+    cd /app 
+    pip3 install -r requirements.txt &>>$LOGS_FILE
+    VALIDATE $? "installing dependencies"
+}
+
 
  app_setup(){
     #creating system user 
@@ -100,3 +122,5 @@ systemd_setup(){
     TOTAL_TIME=$(( $END_TIME - $START_TIME ))
     echo -e "Script executed in: $ $TOTAL_TIME seconds"
  }
+
+
